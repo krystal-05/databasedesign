@@ -1,0 +1,25 @@
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+
+<div class="results">Loans</div>
+<table border="1" cellpadding="5" cellspacing="5">
+    <tr>
+        <th>Payment ID</th><th>Loan ID</th><th>Amount Paid</th><th>Payment Type</th>
+    </tr>	
+    {% for row in data %}
+    <tr>
+        {% for d in row %}
+        <td>{{ d }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+
+
+<div >
+<button class = "button"  onclick="window.location.href='/account_index'">Index</button>
+</div>
+{% endblock %}

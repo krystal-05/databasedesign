@@ -1,0 +1,25 @@
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<div class="results">Checking Account</div>
+<table border="1" cellpadding="5" cellspacing="5">
+    <tr>
+        <th>Account Number</th><th>User ID</th><th>Account Type</th><th>Balance</th><th>Interest Rate</th><th>Date Created</th>
+    </tr>	
+    {% for row in data %}
+    <tr>
+        {% for d in row %}
+        <td>{{ d }}</td>
+        {% endfor %}
+         <!-- adds a row to the table with clickable link to view transactions -->
+         <td><a href="{{ url_for('savings_transations', account_no=row[0]) }}" id="link">View Transactions</a></td>
+    </tr>
+    {% endfor %}
+</table>
+
+<div >
+<button class = "button"  onclick="window.location.href='/account_index'">Index</button>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<div class="form">
+    <form method="POST" action="/account_index">
+    <div><button class="button" type="submit" name="account_type" value="checking">Checking Account</button></div>
+    <div><button class="button" type="submit" name="account_type" value="savings">Savings Account</button></div>
+    <div><button class="button" type="submit" name="account_type" value="loans">Loans</button></div>
+</form>
+
+<button class = "button"  onclick="window.location.href='/main'">Logout</button>
+
+{% endblock %}

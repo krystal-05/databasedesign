@@ -1,0 +1,23 @@
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<div class="form">
+    <form method="POST" action="/login">
+
+        <div id="login">Login</div>
+      
+        <div>
+            <label for="user_id">ID</label>
+            <input type="text" name="user_id" id="user_id">
+        </div>
+
+        <div>
+            <label for="password">Password</label>
+            <input type="text" name="password" id="password">
+        </div>
+
+
+    </form>
+{% endblock %}
