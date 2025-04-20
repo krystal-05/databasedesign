@@ -2,25 +2,34 @@ from flask import Flask, render_template, request, session
 from flask_mysqldb import MySQL
 import pymysql
 
-db = pymysql.connect(host="dbdev.cs.kent.edu", user="", password="", database="")
-app = Flask(__name__)
+# db = pymysql.connect(host="dbdev.cs.kent.edu", user="", password="YES", database="banting_barter_bankclear")
+# app = Flask(__name__)
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root' # Flashline username
-app.config['MYSQL_PASSWORD'] = '' #phpMyAdmin password
-app.config['MYSQL_DB'] = 'ksu' # Flashline Username
+# # app.config['MYSQL_HOST'] = 'localhost'
+# # app.config['MYSQL_USER'] = 'root' # Flashline username
+# # app.config['MYSQL_PASSWORD'] = '' #phpMyAdmin password
+# # app.config['MYSQL_DB'] = 'ksu' # Flashline Username
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+
+# MySQL Database Configuration
+app.config['MYSQL_HOST'] = 'dbdev.cs.kent.edu'
+app.config['MYSQL_USER'] = 'your_username'  # Replace with actual username
+app.config['MYSQL_PASSWORD'] = 'your_password'  # Replace with actual password
+app.config['MYSQL_DB'] = 'banting_barter_bankclear'
 
 mysql = MySQL(app) 
 
 @app.route('/')
 def main():
-    return render_template(main.html)
+    return render_template('main.html')
 
 #login table needs created for login
-@app.route('/login', methods ='GET', 'POST')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        cursor = db.cursor()
+        cursor = mysql.connection.cursor()
         submitted_user_id = request.form['user_id']
         submitted_password = request.form['password']
         #checks for correct credentials 
@@ -48,7 +57,7 @@ def login():
     if request.method == 'GET':
         return render_template('login.html')
 
-@app.route('/account_index', methods= 'GET', 'POST')
+@app.route('/account_index', methods= ['GET', 'POST'])
 def display_account_index():
     if request.method == 'POST':
         #get user_id from current session 
@@ -78,7 +87,7 @@ def display_account_index():
         
 
     if request.method == 'GET':
-        cursor = db.cursor()
+        cursor = mysql.connection.cursor()
         sql = "SELECT * FROM user WHERE user_id = %s"
         cursor.execute(sql, (user_id,))
         results = cursor.fetchall()
@@ -91,7 +100,7 @@ def display_account_index():
 @app.route('/checking')
 def display_checking_account():
     user_id = session.get('user_id')
-    cursor = db.cursor()
+    cursor = mysql.connection.cursor()
     sql = "SELECT * FROM accounts WHERE user_id = %s AND account_type = 'checking'"
     cursor.execute(sql,(user_id,))
     results = cursor.fetchall()
@@ -103,7 +112,7 @@ def display_checking_account():
 @app.route('/savings')
 def display_savings_account():
     user_id = session.get('user_id')
-    cursor = db.cursor()
+    cursor = mysql.connection.cursor()
     sql = "SELECT * FROM accounts WHERE user_id = %s AND account_type = 'savings'"
     cursor.execute(sql, (user_id,))
     results = cursor.fetchall()
@@ -115,8 +124,8 @@ def display_savings_account():
 @app.route('/loans')
 def display_loans_account():
     user_id = session.get('user_id')
-    cursor = db.cursor()
-    sql = SELECT * FROM loans WHERE user_id = %s
+    cursor = mysql.connection.cursor()
+    sql = "SELECT * FROM loans WHERE user_id = %s"
     cursor.execute(sql, (user_id,))
     results = cursor.fetchall()
     cursor.close()
@@ -129,8 +138,8 @@ def display_loans_account():
 def display_savings_transations():
     #idk if this needs stored somewhere else first???
     account_no = session.get('account_no')
-    cursor = db.cursor()
-    sql = SELECT * FROM transactions WHERE account_no = %s
+    cursor = mysql.connection.cursor()
+    sql = "SELECT * FROM transactions WHERE account_no = %s"
     cursor.execute(sql, (account_no,))
     results = cursor.fetchall()
     cursor.close()
@@ -142,8 +151,8 @@ def display_savings_transations():
 def display_checking_transations():
     #idk if this needs stored somewhere else first???
     account_no = session.get('account_no')
-    cursor = db.cursor()
-    sql = SELECT * FROM transactions WHERE account_no = %s
+    cursor = mysql.connection.cursor()
+    sql = "SELECT * FROM transactions WHERE account_no = %s"
     cursor.execute(sql, (account_no,))
     results = cursor.fetchall()
     cursor.close()
@@ -155,8 +164,8 @@ def display_checking_transations():
 def display_loan_payments():
     #idk if this needs stored somewhere else first???
     loan_id = session.get('loan_id')
-    cursor = db.cursor()
-    sql = SELECT * FROM transactions WHERE loan_id = %s
+    cursor = mysql.connection.cursor()
+    sql = "SELECT * FROM transactions WHERE loan_id = %s"
     cursor.execute(sql, (loan_id,))
     results = cursor.fetchall()
     cursor.close()
