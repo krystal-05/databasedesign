@@ -14,12 +14,12 @@
         <td>{{ d }}</td>
         {% endfor %}
         <!-- adds a row to the table with clickable link to view transactions -->
-        <td><a href="{{ url_for('checking_transations', account_no=row[0]) }}" id="link">View Transactions</a></td>
+        <td><a href="{{ url_for('display_account_transactions', account_no=row[0]) }}" id="link">View Transactions</a></td>
     </tr>
     {% endfor %}
 </table>
 
-<div >
+<div>
 <button class = "button"  onclick="window.location.href='/account_index'">Index</button>
 </div>
 {% endblock %}
