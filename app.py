@@ -64,6 +64,11 @@ def display_account_index():
     cursor.close()
     return render_template('account_index.html', data=results)
 
+#Register for an account
+@app.route('/register', methods=['GET', 'POST'])
+def registerUsers():
+    return render_template('register.html')
+    
 @app.route('/checking')
 def display_checking_account():
     return display_account_type_page('checking')
