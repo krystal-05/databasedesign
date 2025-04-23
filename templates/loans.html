@@ -15,7 +15,7 @@
         <td>{{ d }}</td>
         {% endfor %}
          <!-- adds a row to the table with clickable link to view payments -->
-         <td><a href="{{ url_for('loan_payments', loan_id=row[0]) }}" id="link">View Payments</a></td>
+         <td><a href="{{ url_for('display_loan_payments', loan_id=row[0]) }}" id="link">View Payments</a></td>
     </tr>
     {% endfor %}
 </table>
