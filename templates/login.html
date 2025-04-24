@@ -1,3 +1,4 @@
+{% extends 'include/layout.html' %}
 {% block content %}
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
@@ -6,7 +7,7 @@
 <div class="form">
     <form method="POST" action="/login">
 
-        <div id="login">Login</div>
+        <div id="login"><h1>Login</h1></div>
       
         <div>
             <label for="user_id">ID</label>
@@ -14,10 +15,15 @@
         </div>
 
         <div>
-            <label for="password">Password</label>
-            <input type="text" name="password" id="password">
+            <label for="email">Email</label>
+            <input type="text" name="email" id="email">
+        </div>
+
+        <div>
+            <button type="submit">Login</button>
         </div>
 
 
     </form>
+</div>
 {% endblock %}
