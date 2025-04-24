@@ -6,8 +6,8 @@ app.secret_key = 'your_secret_key'  # Replace with a secure random key in produc
 
 # MySQL Configuration
 app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'bankUser'
-app.config['MYSQL_PASSWORD'] = '!tMifKb7V_Qf)I8i'
+app.config['MYSQL_USER'] = 'root'
+#app.config['MYSQL_PASSWORD'] = '!tMifKb7V_Qf)I8i'
 app.config['MYSQL_DB'] = 'bankdata'
 
 mysql = MySQL(app)
