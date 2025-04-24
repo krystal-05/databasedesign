@@ -67,6 +67,23 @@ def display_account_index():
 #Register for an account
 @app.route('/register', methods=['GET', 'POST'])
 def registerUsers():
+    if request.method == 'POST':
+        userID = request.form['user_id']
+        fName = request.form['first_name']
+        lName = request.form['last_name']
+        email = request.form['email']
+        phone = request.form['phone']
+        address = request.form['address']
+
+        cursor = mysql.connection.cursor()
+        sql = "INSERT INTO users (user_id, first_name, last_name, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (userID, fName, lName, email, phone, address))
+        mysql.connection.commit()
+        cursor.close()
+
+        print(f"Account created successfully! Please log in.", "success")
+        return redirect('/login')
+
     return render_template('register.html')
     
 @app.route('/checking')
