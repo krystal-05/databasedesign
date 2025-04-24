@@ -1,4 +1,15 @@
 /* Right-aligned section inside the top navigation */
 .topnav-right {
     float: right;
-  }
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center; /* Aligns items vertically */
+  justify-content: center; /* Centers everything */
+  padding: 20px;
+}
+
+
+
