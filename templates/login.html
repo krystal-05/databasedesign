@@ -7,23 +7,17 @@
 <div class="form">
     <form method="POST" action="/login">
 
-        <div id="login"><h1>Login</h1></div>
+        <div id="login">Login</div>
       
         <div>
             <label for="user_id">ID</label>
             <input type="text" name="user_id" id="user_id">
         </div>
-
         <div>
-            <label for="password">Password</label>
-            <input type="text" name="password" id="password">
+            <button type="submit">Submit</button>
         </div>
-
-        <div>
-            <button type="submit">Login</button>
-        </div>
-
-
     </form>
-</div>
+    <div>
+        <button onclick="window.location.href='/register'">Create Account</button>
+    </div>
 {% endblock %}
