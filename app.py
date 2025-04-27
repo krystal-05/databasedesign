@@ -66,6 +66,7 @@ def display_account_index():
 
 #Register for an account
 @app.route('/register', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def registerUsers():
     if request.method == 'POST':
         userID = request.form['user_id']
@@ -74,14 +75,30 @@ def registerUsers():
         email = request.form['email']
         phone = request.form['phone']
         address = request.form['address']
+        account_types = request.form.getlist('account_type')  # Fix for multiple selections
 
         cursor = mysql.connection.cursor()
-        sql = "INSERT INTO users (user_id, first_name, last_name, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (userID, fName, lName, email, phone, address))
-        mysql.connection.commit()
-        cursor.close()
 
-        print(f"Account created successfully! Please log in.", "success")
+        # Insert user details
+        sql_users = "INSERT INTO users (user_id, first_name, last_name, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql_users, (userID, fName, lName, email, phone, address))
+
+        # Insert multiple accounts separately
+        for account_type in account_types:
+            sql_accounts = "INSERT INTO accounts (user_id, account_type, balance, interest_rate, date_created) VALUES (%s, %s, %s, %s, NOW())"
+            cursor.execute(sql_accounts, (userID, account_type, 0.00, 0.00))
+
+        mysql.connection.commit()
+
+        # Fetch accounts only if checking/savings was selected
+        if "checking" in account_types or "savings" in account_types:
+            cursor.execute("SELECT * FROM accounts WHERE user_id = %s AND account_type IN (%s, %s)", (userID, "checking", "savings"))
+            results = cursor.fetchall()
+            cursor.close()
+            return render_template('account_index.html', data=results)
+
+        cursor.close()
+        print("Account created successfully! Please log in.")
         return redirect('/login')
 
     return render_template('register.html')
