@@ -43,36 +43,19 @@
         <h3>Select Account Type</h3>
         <div>
             <p>
-                <label for="checking">Checking</label>
-                <input type="checkbox" id="checking" name="account_type" value="checking" onclick="toggleAccounts()">
+                <label for="checking">Checking Account</label>
+                <input type="checkbox" id="checking" name="account_type" value="checking">
             </p>
             
             <p id="savings-container">
-                <label for="savings">Savings</label>
-                <input type="checkbox" id="savings" name="account_type" value="savings" onclick="toggleAccounts()">
+                <label for="savings">Savings Account</label>
+                <input type="checkbox" id="savings" name="account_type" value="savings">
             </p>
             
         </div>
 
         <button type="submit">Register</button>
     </form>
-
-    <script>
-        function toggleAccounts() {
-            let checking = document.getElementById("checking");
-            let savings = document.getElementById("savings");
-            let savingsContainer = document.getElementById("savings-container");
-    
-            // Hide Savings if only Checking is selected
-            if (checking.checked && !savings.checked) {
-                savingsContainer.style.display = "none";
-            } 
-            // Show Savings again if Savings is selected or both are checked
-            else {
-                savingsContainer.style.display = "block";
-            }
-        }
-    </script>
     
 </div>
 
