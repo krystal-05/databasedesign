@@ -1,0 +1,12 @@
+{% extends 'include/layout.html' %}
+{% block content %}
+<h2>Add Money to Account {{ account_no }}</h2>
+
+<form method="post">
+    <label for="amount">Amount:</label>
+    <input type="number" name="amount" step="0.01" required>
+    <button type="submit">Add</button>
+</form>
+
+<a href="{{ url_for('display_account_index') }}">Back to Accounts</a>
+{% endblock %}

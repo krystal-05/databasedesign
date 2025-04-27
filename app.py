@@ -143,5 +143,74 @@ def display_loan_payments():
 
     return render_template('loans.html', data=results)
 
+@app.route('/add_money/<int:account_no>', methods=['GET', 'POST'])
+def add_money(account_no):
+    if request.method == 'POST':
+        amount = float(request.form['amount'])
+        cursor = mysql.connection.cursor()
+
+        # UPDATE balance by adding amount
+        cursor.execute(""" UPDATE accounts SET balance = balance + %s WHERE account_no = %s """, (amount, account_no))
+        mysql.connection.commit()
+        cursor.close()
+
+        return redirect(url_for('display_account_index'))
+
+    # Show form to enter amount
+    return render_template('add_money.html', account_no=account_no)
+
+@app.route('/remove_money/<int:account_no>', methods=['GET', 'POST'])
+def remove_money(account_no):
+    if request.method == 'POST':
+        amount = float(request.form['amount'])
+        cursor = mysql.connection.cursor()
+
+        # Check current balance
+        cursor.execute(" SELECT balance FROM accounts WHERE account_no = %s", (account_no,))
+        current_balance = cursor.fetchone()[0]
+
+        if current_balance is not None and current_balance >= amount:
+            # UPDATE balance by subtracting amount
+            cursor.execute(""" UPDATE accounts SET balance = balance - %s WHERE account_no = %s """, (amount, account_no))
+            mysql.connection.commit()
+        else:
+            # Optionally handle if not enough money
+            cursor.close()
+            return "Error: Insufficient balance."
+
+        cursor.close()
+        return redirect(url_for('display_account_index'))
+
+    # Show form to enter amount
+    return render_template('remove_money.html', account_no=account_no)
+
+@app.route('/make_loan_payment/<int:loan_id>', methods=['GET', 'POST'])
+def make_loan_payment(loan_id):
+    if request.method == 'POST':
+        amount = float(request.form['amount'])
+        cursor = mysql.connection.cursor()
+
+        # Insert the payment
+        cursor.execute(""" INSERT INTO loan_payments (loan_id, amount_paid) VALUES (%s, %s) """, (loan_id, amount))
+
+        # Calculate total payments for the loan
+        cursor.execute(""" SELECT SUM(amount_paid) FROM loan_payments WHERE loan_id = %s """, (loan_id,))
+        total_paid = cursor.fetchone()[0] or 0
+
+        # Get the original loan amount
+        cursor.execute(""" SELECT loan_amount FROM loans WHERE loan_id = %s """, (loan_id,))
+        loan_amount = cursor.fetchone()[0]
+
+        # If fully paid, update the status
+        if total_paid >= loan_amount:        
+            cursor.execute(""" UPDATE loans SET status = 'paid' WHERE loan_id = %s """, (loan_id,))
+        mysql.connection.commit()
+        cursor.close()
+
+        return redirect(url_for('display_loans_account'))
+
+    return render_template('make_loan_payment.html', loan_id=loan_id)
+
+
 if __name__ == '__main__':
     app.run(debug=True)

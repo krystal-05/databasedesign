@@ -4,25 +4,26 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-
 <div class="results">Loans</div>
 <table border="1" cellpadding="5" cellspacing="5">
     <tr>
-        <th>Loan ID</th><th>User ID</th><th>Account Type</th><th>Loan Amount</th><th>Interest Rate</th><th>Loan Term</th><th>Monthly Payment</th><th>Status</th><th>Date Created</th>
-    </tr>	
+        <th>Loan ID</th><th>User ID</th><th>Loan Amount</th><th>Interest Rate</th><th>Loan Term</th><th>Monthly Payment</th><th>Status</th><th>Date Created</th><th>Actions</th>
+    </tr>   
     {% for row in data %}
     <tr>
         {% for d in row %}
         <td>{{ d }}</td>
         {% endfor %}
-         <!-- adds a row to the table with clickable link to view payments -->
-         <td><a href="{{ url_for('display_loan_payments', loan_id=row[0]) }}" id="link">View Payments</a></td>
+        <!-- Actions: View Payments + Make Payment -->
+        <td>
+            <a href="{{ url_for('display_loan_payments', loan_id=row[0]) }}" id="link">View Payments</a> |
+            <a href="{{ url_for('make_loan_payment', loan_id=row[0]) }}" id="link">Make Payment</a>
+        </td>
     </tr>
     {% endfor %}
 </table>
 
-
-<div >
-<button class = "button"  onclick="window.location.href='/account_index'">Index</button>
+<div>
+<button class="button" onclick="window.location.href='/account_index'">Index</button>
 </div>
 {% endblock %}

@@ -10,6 +10,16 @@
   justify-content: center; /* Centers everything */
   padding: 20px;
 }
+.money-button {
+  margin: 0 5px;
+  color: darkgreen;
+  text-decoration: none;
+  font-weight: bold;
+}
+.money-button:hover {
+  text-decoration: underline;
+  color: green;
+}
 
 
 
