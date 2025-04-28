@@ -1,37 +1,74 @@
 {% extends 'include/layout.html' %}
 
 {% block head %}
-<title>Make Loan Payment</title>
+  <title>Make Loan Payment</title>
 {% endblock %}
 
 {% block content %}
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <title>Make Loan Payment</title>
 </head>
-
 <div class="container my-5">
-    <div class="text-center mb-4">
-        <h2 class="fw-bold">Make a Loan Payment</h2>
-        <p class="text-muted">Loan ID: <strong>{{ loan_id }}</strong></p>
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">Make Payment for Loan {{ loan.loan_id }}</h2>
+    <p class="text-muted">
+      Outstanding Balance: ${{ "{:,.2f}".format(loan.remaining_balance) }}
+    </p>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST"
+        action="{{ url_for('make_loan_payment', loan_id=loan.loan_id) }}"
+        class="mx-auto"
+        style="max-width: 500px;">
+
+    <div class="mb-3">
+      <label for="sourceAccount" class="form-label">Source Account</label>
+      <select name="account_no"
+              id="sourceAccount"
+              class="form-select {% if error_field=='account_no' %}is-invalid{% endif %}"
+              required>
+        <option value="" disabled selected>Select account</option>
+        {% for acct in accounts %}
+        <option value="{{ acct.account_no }}"
+                {% if form_data.account_no==acct.account_no|string %}selected{% endif %}>
+          {{ acct.account_type.title() }} #{{ acct.account_no }}
+          (Balance: ${{ "{:,.2f}".format(acct.balance) }})
+        </option>
+        {% endfor %}
+      </select>
+      {% if error_field=='account_no' %}
+      <div class="invalid-feedback">{{ error }}</div>
+      {% endif %}
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <form method="post" class="p-4 border rounded-3 bg-light shadow-sm">
-                <div class="mb-3">
-                    <label for="amount" class="form-label fw-bold">Payment Amount</label>
-                    <input type="number" name="amount" step="0.01" min="0.01" class="form-control" required>
-                </div>
-
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-lg btn-custom">Submit Payment</button>
-                </div>
-            </form>
-
-            <div class="text-center mt-3">
-                <a href="{{ url_for('display_loans_account') }}" class="btn btn-outline-secondary">Back to Loans</a>
-            </div>
-        </div>
+    <div class="mb-3">
+      <label for="paymentAmount" class="form-label">Payment Amount ($)</label>
+      <input type="number"
+             step="0.01"
+             name="amount"
+             id="paymentAmount"
+             value="{{ form_data.amount or '' }}"
+             class="form-control {% if error_field=='amount' %}is-invalid{% endif %}"
+             required>
+      {% if error_field=='amount' %}
+      <div class="invalid-feedback">{{ error }}</div>
+      {% endif %}
     </div>
+
+    <button type="submit" class="btn btn-primary w-100 mt-4">
+      Submit Payment
+    </button>
+    <div class="text-center mt-3">
+      <a href="{{ url_for('display_loans_account') }}"
+         class="btn btn-outline-secondary">
+        Back to Loans
+      </a>
+    </div>
+  </form>
 </div>
 {% endblock %}

@@ -3,6 +3,8 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
+from decimal import Decimal
+
 
 
 app = Flask(__name__)
@@ -201,18 +203,38 @@ def display_account_transactions():
     template = 'checking.html' if 'checking' in request.path else 'savings.html'
     return render_template(template, data=results)
 
-@app.route('/loan_payments')
-def display_loan_payments():
-    loan_id = session.get('loan_id')
-    if not loan_id:
-        return redirect(url_for('display_loans_account'))
+@app.route('/loan_payments/<int:loan_id>')
+def display_loan_payments(loan_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
 
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM loan_payments WHERE loan_id = %s", (loan_id,))
-    results = cursor.fetchall()
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    # confirm loan belongs to user
+    cursor.execute("""
+        SELECT 1
+        FROM loans
+        WHERE loan_id = %s AND user_id = %s
+    """, (loan_id, user_id))
+    if not cursor.fetchone():
+        cursor.close()
+        abort(404, "Loan not found.")
+
+    # fetch payments
+    cursor.execute("""
+        SELECT payment_id, amount_paid, payment_date
+        FROM loan_payments
+        WHERE loan_id = %s
+        ORDER BY payment_date DESC
+    """, (loan_id,))
+    payments = cursor.fetchall()
     cursor.close()
 
-    return render_template('loans.html', data=results)
+    return render_template(
+        'loan_payments.html',
+        loan_id=loan_id,
+        payments=payments
+    )
 
 @app.route('/add_money/<int:account_no>', methods=['GET', 'POST'])
 def add_money(account_no):
@@ -287,59 +309,115 @@ def remove_money(account_no):
 
 @app.route('/make_loan_payment/<int:loan_id>', methods=['GET', 'POST'])
 def make_loan_payment(loan_id):
-    if request.method == 'POST':
-        amount = float(request.form['amount'])
-        cursor = mysql.connection.cursor()
-
-        # Insert the payment
-        cursor.execute(""" INSERT INTO loan_payments (loan_id, amount_paid) VALUES (%s, %s) """, (loan_id, amount))
-
-        # Calculate total payments for the loan
-        cursor.execute(""" SELECT SUM(amount_paid) FROM loan_payments WHERE loan_id = %s """, (loan_id,))
-        total_paid = cursor.fetchone()[0] or 0
-
-        # Get the original loan amount
-        cursor.execute(""" SELECT loan_amount FROM loans WHERE loan_id = %s """, (loan_id,))
-        loan_amount = cursor.fetchone()[0]
-
-        # If fully paid, update the status
-        if total_paid >= loan_amount:        
-            cursor.execute(""" UPDATE loans SET status = 'paid' WHERE loan_id = %s """, (loan_id,))
-        mysql.connection.commit()
-        cursor.close()
-
-        return redirect(url_for('display_loans_account'))
-
-    return render_template('make_loan_payment.html', loan_id=loan_id)
-
-@app.route('/transactions')
-def view_transactions():
     user_id = session.get('user_id')
     if not user_id:
         return redirect(url_for('login'))
 
-    account_filter = request.args.get('account_no')
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    # Fetch current remaining balance (we've been decrementing loan_amount as balance)
+    cursor.execute("""
+        SELECT
+          loan_id,
+          loan_amount   AS remaining_balance
+        FROM loans
+        WHERE loan_id = %s
+          AND user_id = %s
+    """, (loan_id, user_id))
+    loan = cursor.fetchone()
+    if not loan:
+        cursor.close()
+        abort(404, "Loan not found.")
 
-    if account_filter:
-        cursor.execute("""
-            SELECT * FROM transactions
-            WHERE account_no = %s
-            ORDER BY transaction_date DESC
-        """, (account_filter,))
-    else:
-        cursor.execute("""
-            SELECT t.*
-            FROM transactions t
-            JOIN accounts a ON t.account_no = a.account_no
-            WHERE a.user_id = %s
-            ORDER BY transaction_date DESC
-        """, (user_id,))
+    # Load all checking/savings for dropdown
+    cursor.execute("""
+        SELECT account_no, account_type, balance
+        FROM accounts
+        WHERE user_id = %s
+          AND account_type IN ('checking','savings')
+    """, (user_id,))
+    accounts = cursor.fetchall()
 
-    transactions = cursor.fetchall()
+    error = None
+    error_field = None
+    form_data = {}
+
+    if request.method == 'POST':
+        form_data = request.form.to_dict()
+        try:
+            acct_no = int(form_data.get('account_no', 0))
+            # Parse as Decimal, not float
+            amt     = Decimal(form_data.get('amount', '0.00'))
+        except (ValueError, ArithmeticError):
+            error = "Please select an account and enter a valid amount."
+            error_field = 'amount'
+        else:
+            # Validation: positive, not over loan, account has funds
+            if amt <= 0:
+                error = "Payment must be positive."
+                error_field = 'amount'
+            elif amt > loan['remaining_balance']:
+                error = "Cannot pay more than remaining balance."
+                error_field = 'amount'
+            else:
+                # check source account balance
+                cursor.execute("""
+                    SELECT balance
+                    FROM accounts
+                    WHERE account_no = %s AND user_id = %s
+                """, (acct_no, user_id))
+                acct = cursor.fetchone()
+                if not acct:
+                    error = "Selected account not found."
+                    error_field = 'account_no'
+                elif amt > acct['balance']:
+                    error = "Insufficient funds in source account."
+                    error_field = 'account_no'
+                else:
+                    # 1) withdraw from account
+                    cursor.execute("""
+                        UPDATE accounts
+                           SET balance = balance - %s
+                         WHERE account_no = %s
+                    """, (amt, acct_no))
+                    # 2) log transaction
+                    cursor.execute("""
+                        INSERT INTO transactions
+                          (account_no, amount, transaction_type, transaction_date)
+                        VALUES (%s, %s, %s, NOW())
+                    """, (acct_no, -amt, 'loan_payment'))
+                    # 3) log loan payment
+                    cursor.execute("""
+                        INSERT INTO loan_payments (loan_id, amount_paid)
+                        VALUES (%s, %s)
+                    """, (loan_id, amt))
+                    # 4) update loan balance + status
+                    new_bal: Decimal = loan['remaining_balance'] - amt
+                    if new_bal <= 0:
+                        cursor.execute("""
+                            UPDATE loans
+                               SET loan_amount = 0, status = 'paid'
+                             WHERE loan_id = %s
+                        """, (loan_id,))
+                    else:
+                        cursor.execute("""
+                            UPDATE loans
+                               SET loan_amount = %s
+                             WHERE loan_id = %s
+                        """, (new_bal, loan_id))
+
+                    mysql.connection.commit()
+                    cursor.close()
+                    return redirect(url_for('display_loan_payments', loan_id=loan_id))
+
     cursor.close()
-
-    return render_template('transactions.html', transactions=transactions)
+    return render_template(
+        'make_loan_payment.html',
+        loan=loan,
+        accounts=accounts,
+        form_data=form_data,
+        error=error,
+        error_field=error_field
+    )
 
 @app.route('/open_account', methods=['GET', 'POST'])
 def open_new_account():
@@ -428,28 +506,29 @@ def open_new_account():
         elif account_type == 'loan':
             try:
                 loan_amount = float(form_data.get('loan_amount', 0.00))
-                loan_term   = int(form_data.get('loan_term', 0))
+                loan_term = int(form_data.get('loan_term', 0))
             except ValueError:
                 error = "Please enter valid loan amount and term."
                 error_field = 'loan_amount'
                 cursor.close()
                 return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
 
-            # Minimum loan amount check
             if loan_amount < 1000:
                 error = "Minimum loan amount is $1,000."
                 error_field = 'loan_amount'
                 cursor.close()
                 return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
 
-            # Calculate monthly payment
-            monthly_payment = round(loan_amount / loan_term, 2)
+            # Fixed 7% interest
+            loan_interest = 7.0
+            monthly_rate = (loan_interest / 100) / 12
+            monthly_payment = round(loan_amount * monthly_rate / (1 - (1 + monthly_rate)**(-loan_term)), 2)
 
             cursor.execute("""
                 INSERT INTO loans
                 (user_id, loan_amount, interest_rate, loan_term, monthly_payment, status, date_created)
                 VALUES (%s, %s, %s, %s, %s, 'active', NOW())
-            """, (user_id, loan_amount, 0.00, loan_term, monthly_payment))
+            """, (user_id, loan_amount, loan_interest, loan_term, monthly_payment))
 
 
         else:

@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block content %}
+<head>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+  <title>All Transactions</title>
+</head>
+
 <div class="container my-5">
   <button onclick="history.back()" class="btn btn-secondary mb-4">← Back</button>
 
