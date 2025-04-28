@@ -1,10 +1,42 @@
 {% extends 'include/layout.html' %}
 {% block content %}
- <head>
-     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
- </head>
- 
- <div>
-     <button class="button" onclick= "window.location.href='/login'"> Login </button>
- </div>
- {% endblock %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<div class="container text-center my-5">
+    <!-- Hero Section -->
+    <div class="py-5">
+        <h1 class="display-4 fw-bold" style="color: #000080ff; font-family: helvetica, sans-serif;">Banting-Barter Bank</h1>
+        <p class="lead text-muted">Your future, your funds, our utmost commitment to trust, compliance, and 100% totally legitimate financial services.</p>
+    
+        {% if not session.get('user_id') %}
+        <div class="d-grid gap-2 col-6 mx-auto my-4">
+            <button class="btn btn-lg btn-custom" onclick="window.location.href='/login'">Secure Login</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Features Section -->
+    <div class="row my-5">
+        <div class="col-md-4">
+            <h3 class="fw-bold">Safe & Sound</h3>
+            <p class="text-muted">All deposits are handled with unparalleled discretion and confidentiality, following virtually all applicable regulations.</p>
+        </div>
+        <div class="col-md-4">
+            <h3 class="fw-bold">Proven Track Record</h3>
+            <p class="text-muted">Thousands of satisfied clients trust us — and the majority would recommend us if legally permitted to discuss it.</p>
+        </div>
+        <div class="col-md-4">
+            <h3 class="fw-bold">Full Transparency</h3>
+            <p class="text-muted">Our operations are completely transparent — provided you sign the necessary nondisclosure agreements first.</p>
+        </div>
+    </div>
+
+    <!-- Compliance Note -->
+    <div class="mt-5 small text-muted">
+        <p>TrustBank is fully compliant with all relevant international banking regulations, provided you accept our alternative compliance interpretation policies. Rest assured, your money is probably in good hands.</p>
+    </div>
+</div>
+
+{% endblock %}

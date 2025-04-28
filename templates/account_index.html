@@ -4,13 +4,45 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-<div class="form">
-    <form method="POST" action="/account_index">
-    <div><button class="button" type="submit" name="account_type" value="checking">Checking Account</button></div>
-    <div><button class="button" type="submit" name="account_type" value="savings">Savings Account</button></div>
-    <div><button class="button" type="submit" name="account_type" value="loans">Loans</button></div>
-</form>
+<div class="container my-5">
+  <!-- User Greeting -->
+  <div class="row align-items-center mb-4">
+    <div class="col-md-2">
+      <img src="/static/image/bankgraphic_logo.svg" alt="Bank Logo" style="height: 60px;">
+    </div>
+    <div class="col-md-10">
+      <h2 class="fw-bold">Hello, {{ user.first_name }} {{ user.last_name }}</h2>
+      <p class="text-muted">Here’s a quick overview of your accounts. Navigate easily or open new ones below.</p>
+    </div>
+  </div>
 
-<button class = "button"  onclick="window.location.href='/login'">Logout</button>
+  <!-- Account Summary Cards -->
+  <div class="row gy-4">
+    {% for acct_type, accounts in [('Checking', checking_accounts), ('Savings', savings_accounts), ('Loans', loan_accounts)] %}
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ acct_type }} Accounts</h5>
+          {% if accounts %}
+            <ul class="list-unstyled mb-4 flex-grow-1">
+              {% for acct in accounts %}
+              <li class="mb-2">
+                <a href="/{{ acct_type|lower }}" class="text-decoration-none">
+                  <strong>#{{ acct.account_no }}</strong> — Balance: ${{ '{:,.2f}'.format(acct.balance) }}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+            <a href="/{{ acct_type|lower }}" class="mt-auto btn btn-sm btn-outline-primary">View All {{ acct_type }}</a>
+          {% else %}
+            <p class="text-muted flex-grow-1">You don’t have any {{ acct_type.lower() }} accounts yet.</p>
+            <a href="/register" class="mt-auto btn btn-sm btn-outline-primary">Open {{ acct_type }} Account</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
 
 {% endblock %}

@@ -1,4 +1,3 @@
-
 {% extends 'include/layout.html' %}
 {% block content %}
 
@@ -6,57 +5,95 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-<div class="form">
-    <form method="POST" action="/register">
-        <h2>Create an Account</h2>
+<div class="container text-center my-5">
+    <div class="py-5">
+        <h1 class="display-4 fw-bold">Create Your Account</h1>
+        <p class="lead text-muted">Get started with TrustBank today. We promise your information will be handled with the utmost care and discretion — probably.</p>
+    </div>
 
-        <div>
-            <label for="user_id">User ID</label>
-            <input type="text" name="user_id" id="user_id" required>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <form method="POST" action="/register" class="p-4 border rounded-3 bg-light shadow-sm" id="registerForm">
+                <div class="mb-3">
+                    <label for="first_name" class="form-label fw-bold">First Name</label>
+                    <input type="text" class="form-control" name="first_name" id="first_name" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="last_name" class="form-label fw-bold">Last Name</label>
+                    <input type="text" class="form-control" name="last_name" id="last_name" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-bold">Email</label>
+                    <input type="email" class="form-control" name="email" id="email" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone" class="form-label fw-bold">Phone</label>
+                    <input type="tel" class="form-control" name="phone" id="phone" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="address" class="form-label fw-bold">Address</label>
+                    <input type="text" class="form-control" name="address" id="address" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label fw-bold">Password</label>
+                    <input type="password" class="form-control" name="password" id="password" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="confirm_password" class="form-label fw-bold">Confirm Password</label>
+                    <input type="password" class="form-control" name="confirm_password" id="confirm_password" required>
+                </div>                
+
+                <h4 class="fw-bold mt-4 mb-3">Select Account Type(s)</h4>
+
+                <div class="form-check form-check-inline mb-3">
+                    <input class="form-check-input" type="checkbox" id="checking" name="account_type" value="checking">
+                    <label class="form-check-label" for="checking">Checking Account</label>
+                </div>
+
+                <div class="form-check form-check-inline mb-3">
+                    <input class="form-check-input" type="checkbox" id="savings" name="account_type" value="savings">
+                    <label class="form-check-label" for="savings">Savings Account</label>
+                </div>
+
+                <div class="d-grid gap-2 my-4">
+                    <button type="submit" class="btn btn-lg btn-custom" id="registerButton">
+                        <span id="registerButtonText">Register</span>
+                        <span id="registerSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-3">
+                <p class="text-muted small">Already have an account?</p>
+                <button onclick="window.location.href='/login'" class="btn btn-outline-secondary">Back to Login</button>
+            </div>
         </div>
-
-        <div>
-            <label for="first_name">First Name</label>
-            <input type="text" name="first_name" id="first_name" required>
-        </div>
-
-        <div>
-            <label for="last_name">Last Name</label>
-            <input type="text" name="last_name" id="last_name" required>
-        </div>
-
-        <div>
-            <label for="email">Email</label>
-            <input type="email" name="email" id="email" required>
-        </div>
-
-        <div>
-            <label for="phone">Phone</label>
-            <input type="tel" name="phone" id="phone" required>
-        </div>
-
-        <div>
-            <label for="address">Address</label>
-            <input type="text" name="address" id="address" required>
-        </div>
-
-        <h3>Select Account Type</h3>
-        <div>
-            <p>
-                <label for="checking">Checking Account</label>
-                <input type="checkbox" id="checking" name="account_type" value="checking">
-            </p>
-            
-            <p id="savings-container">
-                <label for="savings">Savings Account</label>
-                <input type="checkbox" id="savings" name="account_type" value="savings">
-            </p>
-            
-        </div>
-
-        <button type="submit">Register</button>
-    </form>
-    
+    </div>
 </div>
+
+<script>
+    const registerForm = document.getElementById('registerForm');
+    const registerButton = document.getElementById('registerButton');
+    const registerSpinner = document.getElementById('registerSpinner');
+    const registerButtonText = document.getElementById('registerButtonText');
+
+    registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        registerSpinner.classList.remove('d-none');
+        registerButtonText.textContent = 'Registering...';
+        registerButton.disabled = true;
+
+        setTimeout(() => {
+            registerForm.submit();
+        }, 750);
+    });
+</script>
 
 {% endblock %}
