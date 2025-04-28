@@ -1,49 +1,56 @@
 {% extends 'include/layout.html' %}
+
+{% block head %}
+<title>All Transactions</title>
+{% endblock %}
+
 {% block content %}
-
 <div class="container my-5">
-    <div class="text-center mb-4">
-        <h2 class="fw-bold">Transaction History</h2>
-        <p class="text-muted">View all transactions from your checking and savings accounts.</p>
-    </div>
+  <button onclick="history.back()" class="btn btn-secondary mb-4">← Back</button>
 
-    <form method="GET" action="{{ url_for('view_transactions') }}" class="row g-3 justify-content-center mb-4">
-        <div class="col-md-4">
-            <input type="number" name="account_no" class="form-control" placeholder="Filter by Account Number">
-        </div>
-        <div class="col-auto">
-            <button type="submit" class="btn btn-primary">Filter</button>
-        </div>
-    </form>
+  <h2 class="fw-bold">All Transactions</h2>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Transaction ID</th>
-                    <th>Account Number</th>
-                    <th>Amount</th>
-                    <th>Transaction Type</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for txn in transactions %}
-                <tr>
-                    <td>{{ txn['transaction_id'] }}</td>
-                    <td>{{ txn['account_no'] }}</td>
-                    <td>${{ "{:,.2f}".format(txn['amount']) }}</td>
-                    <td>{{ txn['transaction_type'].capitalize() }}</td>
-                    <td>{{ txn['transaction_date'].strftime("%Y-%m-%d %H:%M") }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+  <div class="mb-3">
+    <input type="text" id="accountFilter" class="form-control" placeholder="Type beginning of Account Number...">
+  </div>
 
-    <div class="text-center mt-4">
-        <a href="{{ url_for('display_account_index') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
-    </div>
+  <table class="table table-striped" id="transactionsTable">
+    <thead>
+      <tr>
+        <th>Transaction ID</th>
+        <th>Account Number</th>
+        <th>Transaction Type</th>
+        <th>Amount</th>
+        <th>Transaction Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for txn in transactions %}
+      <tr>
+        <td>{{ txn.transaction_id }}</td>
+        <td>{{ txn.account_no }}</td>
+        <td>{{ txn.transaction_type }}</td>
+        <td>${{ '{:,.2f}'.format(txn.amount) }}</td>
+        <td>{{ txn.transaction_date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
+<script>
+document.getElementById('accountFilter').addEventListener('input', function() {
+    const filterValue = this.value;
+    const rows = document.querySelectorAll('#transactionsTable tbody tr');
+
+    rows.forEach(row => {
+        const accountNo = row.children[1].innerText;
+        if (accountNo.startsWith(filterValue)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+</script>
 {% endblock %}

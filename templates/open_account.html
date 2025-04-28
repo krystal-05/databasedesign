@@ -1,0 +1,76 @@
+{% extends 'include/layout.html' %}
+
+{% block head %}
+<title>Open New Account</title>
+{% endblock %}
+
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Open a New Account</h2>
+        <p class="text-muted">Fill out the form below to customize your new account.</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('open_new_account') }}" class="mx-auto" style="max-width: 500px;">
+        <div class="mb-3">
+            <label for="accountType" class="form-label">Account Type</label>
+            <select class="form-select" id="accountType" name="account_type" required onchange="updateForm()">
+                <option value="" selected disabled>Select account type</option>
+                <option value="checking">Checking Account</option>
+                <option value="savings">Savings Account</option>
+                <option value="loan">Loan</option>
+            </select>
+        </div>
+
+        <div id="dynamicFields"></div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-4">Open Account</button>
+
+        <div class="text-center mt-3">
+            <a href="{{ url_for('display_account_index') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function updateForm() {
+    const accountType = document.getElementById('accountType').value;
+    const fieldsDiv = document.getElementById('dynamicFields');
+    fieldsDiv.innerHTML = '';
+
+    if (accountType === 'checking' || accountType === 'savings') {
+        fieldsDiv.innerHTML += `
+            <div class="mb-3">
+                <label for="initialDeposit" class="form-label">Initial Deposit ($)</label>
+                <input type="number" step="0.01" class="form-control" id="initialDeposit" name="initial_deposit" required>
+            </div>
+        `;
+    }
+
+    if (accountType === 'savings') {
+        fieldsDiv.innerHTML += `
+            <div class="mb-3">
+                <label for="interestRate" class="form-label">Interest Rate (%)</label>
+                <input type="number" step="0.01" class="form-control" id="interestRate" name="interest_rate" required>
+            </div>
+        `;
+    }
+
+    if (accountType === 'loan') {
+        fieldsDiv.innerHTML += `
+            <div class="mb-3">
+                <label for="loanAmount" class="form-label">Loan Amount ($)</label>
+                <input type="number" step="0.01" class="form-control" id="loanAmount" name="loan_amount" required>
+            </div>
+            <div class="mb-3">
+                <label for="loanTerm" class="form-label">Loan Term (Months)</label>
+                <input type="number" class="form-control" id="loanTerm" name="loan_term" required>
+            </div>
+        `;
+    }
+}
+</script>
+{% endblock %}

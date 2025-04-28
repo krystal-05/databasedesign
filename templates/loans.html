@@ -1,29 +1,59 @@
 {% extends 'include/layout.html' %}
+
+{% block head %}
+<title>My Loans</title>
+{% endblock %}
+
 {% block content %}
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">My Loans</h2>
+        <p class="text-muted">Manage your loans and view your payment history.</p>
+    </div>
 
-<div class="results">Loans</div>
-<table border="1" cellpadding="5" cellspacing="5">
-    <tr>
-        <th>Loan ID</th><th>User ID</th><th>Loan Amount</th><th>Interest Rate</th><th>Loan Term</th><th>Monthly Payment</th><th>Status</th><th>Date Created</th><th>Actions</th>
-    </tr>   
-    {% for row in data %}
-    <tr>
-        {% for d in row %}
-        <td>{{ d }}</td>
-        {% endfor %}
-        <!-- Actions: View Payments + Make Payment -->
-        <td>
-            <a href="{{ url_for('display_loan_payments', loan_id=row[0]) }}" id="link">View Payments</a> |
-            <a href="{{ url_for('make_loan_payment', loan_id=row[0]) }}" id="link">Make Payment</a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Loan ID</th>
+                    <th>Loan Amount</th>
+                    <th>Interest Rate</th>
+                    <th>Loan Term</th>
+                    <th>Monthly Payment</th>
+                    <th>Status</th>
+                    <th>Date Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>${{ "{:,.2f}".format(row[2]) }}</td>
+                    <td>{{ row[3] }}%</td>
+                    <td>{{ row[4] }} months</td>
+                    <td>${{ "{:,.2f}".format(row[5]) }}</td>
+                    <td>{{ row[6] }}</td>
+                    <td>{{ row[7].strftime("%Y-%m-%d") if row[7] else 'N/A' }}</td>
+                    <td class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('make_loan_payment', loan_id=row[0]) }}" class="btn btn-success btn-sm">Make Payment</a>
+                        <a href="{{ url_for('display_loan_payments', loan_id=row[0]) }}" class="btn btn-primary btn-sm">View Payments</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-<div>
-<button class="button" onclick="window.location.href='/account_index'">Index</button>
+    <div class="text-center mt-3">
+        <a href="{{ url_for('open_new_account') }}" class="btn btn-outline-primary">Open New Account</a>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('display_account_index') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
 </div>
 {% endblock %}

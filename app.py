@@ -341,6 +341,48 @@ def view_transactions():
 
     return render_template('transactions.html', transactions=transactions)
 
+@app.route('/open_account', methods=['GET', 'POST'])
+def open_new_account():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        account_type = request.form.get('account_type')
+
+        cursor = mysql.connection.cursor()
+
+        if account_type == 'checking':
+            initial_deposit = float(request.form.get('initial_deposit', 0.00))
+            cursor.execute("""
+                INSERT INTO accounts (user_id, account_type, balance, interest_rate, date_created)
+                VALUES (%s, 'checking', %s, 0.00, NOW())
+            """, (user_id, initial_deposit))
+
+        elif account_type == 'savings':
+            initial_deposit = float(request.form.get('initial_deposit', 0.00))
+            interest_rate = float(request.form.get('interest_rate', 0.00))
+            cursor.execute("""
+                INSERT INTO accounts (user_id, account_type, balance, interest_rate, date_created)
+                VALUES (%s, 'savings', %s, %s, NOW())
+            """, (user_id, initial_deposit, interest_rate))
+
+        elif account_type == 'loan':
+            loan_amount = float(request.form.get('loan_amount', 0.00))
+            loan_term = int(request.form.get('loan_term', 12))
+            monthly_payment = 0.00  # You could calculate based on loan amount/term if you want
+            cursor.execute("""
+                INSERT INTO loans (user_id, loan_amount, interest_rate, loan_term, monthly_payment, status, date_created)
+                VALUES (%s, %s, 0.00, %s, %s, 'active', NOW())
+            """, (user_id, loan_amount, loan_term, monthly_payment))
+
+        mysql.connection.commit()
+        cursor.close()
+
+        return redirect(url_for('display_account_index'))
+
+    return render_template('open_account.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -2,6 +2,8 @@
 {% block content %}
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <favicon href="{{ url_for('static', filename='image/favicon.ico') }}" />
+    <title>Checking</title>
 </head>
 
 <div class="container my-5">
@@ -40,7 +42,10 @@
             </tbody>
         </table>
     </div>
-    
+    <div class="text-center mt-3">
+        <a href="{{ url_for('open_new_account') }}" class="btn btn-outline-primary">Open New Account</a>
+    </div>
+
     <div class="text-center mt-4">
         <a href="{{ url_for('display_account_index') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
     </div>

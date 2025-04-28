@@ -2,14 +2,13 @@
 {% block content %}
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <title>Account Overview</title>
 </head>
 
 <div class="container my-5">
   <!-- User Greeting -->
   <div class="row align-items-center mb-4">
-    <div class="col-md-2">
-      <img src="/static/image/bankgraphic_logo.svg" alt="Bank Logo" style="height: 60px;">
-    </div>
+
     <div class="col-md-10">
       <h2 class="fw-bold">Hello, {{ user.first_name }} {{ user.last_name }}</h2>
       <p class="text-muted">Here’s a quick overview of your accounts. Navigate easily or open new ones below.</p>
@@ -36,8 +35,8 @@
             <a href="/{{ acct_type|lower }}" class="mt-auto btn btn-sm btn-outline-primary">View All {{ acct_type }}</a>
           {% else %}
             <p class="text-muted flex-grow-1">You don’t have any {{ acct_type.lower() }} accounts yet.</p>
-            <a href="/register" class="mt-auto btn btn-sm btn-outline-primary">Open {{ acct_type }} Account</a>
-          {% endif %}
+            <a href="{{ url_for('open_new_account') }}" class="mt-auto btn btn-sm btn-outline-primary">Open New Account</a>
+            {% endif %}
         </div>
       </div>
     </div>
