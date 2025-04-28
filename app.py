@@ -347,41 +347,150 @@ def open_new_account():
     if not user_id:
         return redirect(url_for('login'))
 
-    if request.method == 'POST':
-        account_type = request.form.get('account_type')
+    # Initialize, so template always has these variables
+    form_data   = {}
+    error       = None
+    error_field = None
 
+    if request.method == 'POST':
+        # grab everything they sent
+        form_data = request.form.to_dict()
+
+        account_type = form_data.get('account_type')
         cursor = mysql.connection.cursor()
 
         if account_type == 'checking':
-            initial_deposit = float(request.form.get('initial_deposit', 0.00))
+            try:
+                initial_deposit = float(form_data.get('initial_deposit', 0.00))
+            except ValueError:
+                error       = "Please enter a valid deposit amount."
+                error_field = 'initial_deposit'
+                cursor.close()
+                return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
+
             cursor.execute("""
-                INSERT INTO accounts (user_id, account_type, balance, interest_rate, date_created)
-                VALUES (%s, 'checking', %s, 0.00, NOW())
-            """, (user_id, initial_deposit))
+                INSERT INTO accounts
+                  (user_id, account_type, balance, interest_rate, date_created)
+                VALUES (%s, %s, %s, %s, NOW())
+            """, (user_id, 'checking', initial_deposit, 0.00))
+            account_no = cursor.lastrowid
+
+            if initial_deposit > 0:
+                cursor.execute("""
+                    INSERT INTO transactions
+                      (account_no, amount, transaction_type, transaction_date)
+                    VALUES (%s, %s, 'deposit', NOW())
+                """, (account_no, initial_deposit))
 
         elif account_type == 'savings':
-            initial_deposit = float(request.form.get('initial_deposit', 0.00))
-            interest_rate = float(request.form.get('interest_rate', 0.00))
+            # validate deposit
+            try:
+                initial_deposit = float(form_data.get('initial_deposit', 0.00))
+            except ValueError:
+                error       = "Please enter a valid deposit amount."
+                error_field = 'initial_deposit'
+                cursor.close()
+                return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
+
+            savings_plan = form_data.get('savings_plan')
+            if savings_plan == 'fixed_0.03':
+                interest_rate = 0.03
+            elif savings_plan == 'fixed_0.05':
+                if initial_deposit < 15000:
+                    error       = "Minimum deposit for 5% plan is $15,000."
+                    error_field = 'initial_deposit'
+                    cursor.close()
+                    return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
+                interest_rate = 0.05
+            elif savings_plan == 'variable':
+                import random
+                interest_rate = round(random.uniform(0.02, 0.06), 4)
+            else:
+                error       = "Please select a valid savings plan."
+                error_field = 'savings_plan'
+                cursor.close()
+                return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
+
             cursor.execute("""
-                INSERT INTO accounts (user_id, account_type, balance, interest_rate, date_created)
-                VALUES (%s, 'savings', %s, %s, NOW())
-            """, (user_id, initial_deposit, interest_rate))
+                INSERT INTO accounts
+                  (user_id, account_type, balance, interest_rate, date_created)
+                VALUES (%s, %s, %s, %s, NOW())
+            """, (user_id, 'savings', initial_deposit, interest_rate))
+            account_no = cursor.lastrowid
+
+            if initial_deposit > 0:
+                cursor.execute("""
+                    INSERT INTO transactions
+                      (account_no, amount, transaction_type, transaction_date)
+                    VALUES (%s, %s, 'deposit', NOW())
+                """, (account_no, initial_deposit))
 
         elif account_type == 'loan':
-            loan_amount = float(request.form.get('loan_amount', 0.00))
-            loan_term = int(request.form.get('loan_term', 12))
-            monthly_payment = 0.00  # You could calculate based on loan amount/term if you want
+            try:
+                loan_amount = float(form_data.get('loan_amount', 0.00))
+                loan_term   = int(form_data.get('loan_term', 0))
+            except ValueError:
+                error = "Please enter valid loan amount and term."
+                error_field = 'loan_amount'
+                cursor.close()
+                return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
+
+            # Minimum loan amount check
+            if loan_amount < 1000:
+                error = "Minimum loan amount is $1,000."
+                error_field = 'loan_amount'
+                cursor.close()
+                return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
+
+            # Calculate monthly payment
+            monthly_payment = round(loan_amount / loan_term, 2)
+
             cursor.execute("""
-                INSERT INTO loans (user_id, loan_amount, interest_rate, loan_term, monthly_payment, status, date_created)
-                VALUES (%s, %s, 0.00, %s, %s, 'active', NOW())
-            """, (user_id, loan_amount, loan_term, monthly_payment))
+                INSERT INTO loans
+                (user_id, loan_amount, interest_rate, loan_term, monthly_payment, status, date_created)
+                VALUES (%s, %s, %s, %s, %s, 'active', NOW())
+            """, (user_id, loan_amount, 0.00, loan_term, monthly_payment))
+
+
+        else:
+            error       = "Please select an account type."
+            error_field = 'account_type'
+            cursor.close()
+            return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
 
         mysql.connection.commit()
         cursor.close()
-
         return redirect(url_for('display_account_index'))
 
-    return render_template('open_account.html')
+    # GET request or initial load
+    return render_template('open_account.html', form_data=form_data, error=error, error_field=error_field)
+
+
+
+@app.route('/close_account/<int:account_no>', methods=['GET'])
+def close_account(account_no):
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    # Check if account belongs to user and has zero balance
+    cursor.execute("""
+        SELECT balance FROM accounts WHERE account_no = %s AND user_id = %s
+    """, (account_no, user_id))
+    account = cursor.fetchone()
+
+    if account and account['balance'] == 0:
+        # Safe to delete the account
+        cursor.execute("""
+            DELETE FROM accounts WHERE account_no = %s
+        """, (account_no,))
+        mysql.connection.commit()
+        cursor.close()
+        return redirect(url_for('display_account_index'))
+    else:
+        cursor.close()
+        return "Cannot close account. Either it does not exist, does not belong to you, or balance is not zero.", 400
 
 
 if __name__ == '__main__':

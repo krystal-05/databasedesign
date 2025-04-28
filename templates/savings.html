@@ -2,7 +2,7 @@
 {% block content %}
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-    <title>Remove Money</title>
+    <title>Savings</title>
 </head>
 
 <div class="container my-5">
@@ -35,6 +35,9 @@
                         <a href="{{ url_for('add_money', account_no=row[0]) }}" class="btn btn-success btn-sm">Deposit</a>
                         <a href="{{ url_for('remove_money', account_no=row[0]) }}" class="btn btn-danger btn-sm">Withdraw</a>
                         <a href="{{ url_for('view_transactions') }}?account_no={{ row[0] }}" class="btn btn-primary btn-sm">View Transactions</a>
+                        {% if row[3] == 0 %}
+                        <a href="{{ url_for('close_account', account_no=row[0]) }}" class="btn btn-outline-danger btn-sm">Close Account</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

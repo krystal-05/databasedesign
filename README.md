@@ -10,5 +10,12 @@ SQL database located in misc
 
 For Project Usage, there is a test account with login information as provided:
 
-Username: jane.doe@gmail.com
-Password: a
+**Username:** jane.doe@gmail.com<br>
+**Password:** a
+
+ToDo:<br>
+- Change create account to remove selection of checking and savings (redundant)
+- Frontend/Backend for loan payments, viewing and submitting
+- Allow transfer of Checking/Savings to loan payments
+- Viewing history of loan payments
+- Make loan balance dynamic with respect to amount paid
