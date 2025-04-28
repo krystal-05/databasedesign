@@ -36,14 +36,7 @@ CREATE TABLE `accounts` (
   `date_created` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `accounts`
---
 
-INSERT INTO `accounts` (`account_no`, `user_id`, `account_type`, `balance`, `interest_rate`, `date_created`) VALUES
-(20010, 2, 'checking', 100.00, 0, '2025-04-27 23:16:25'),
-(20011, 3, 'checking', 204.88, 0, '2025-04-27 23:18:19'),
-(20012, 3, 'savings', 190.00, 0, '2025-04-27 23:18:19');
 
 -- --------------------------------------------------------
 
@@ -89,19 +82,6 @@ CREATE TABLE `transactions` (
   `transaction_date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `transactions`
---
-
-INSERT INTO `transactions` (`transaction_id`, `account_no`, `transaction_type`, `amount`, `transaction_date`) VALUES
-(23, 20011, 'deposit', 2100.00, '2025-04-27 23:34:16'),
-(24, 20011, 'withdrawal', -2100.00, '2025-04-27 23:36:52'),
-(25, 20011, 'deposit', 210.00, '2025-04-27 23:43:00'),
-(26, 20011, 'withdrawal', -5.00, '2025-04-27 23:43:15'),
-(27, 20011, 'withdrawal', -0.12, '2025-04-27 23:43:20'),
-(28, 20010, 'deposit', 100.00, '2025-04-28 01:02:20'),
-(29, 20012, 'deposit', 210.00, '2025-04-28 01:03:59'),
-(30, 20012, 'withdrawal', -20.00, '2025-04-28 01:04:04');
 
 -- --------------------------------------------------------
 
@@ -119,13 +99,6 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `date_created` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `users`
---
-
-INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `phone`, `address`, `password`, `date_created`) VALUES
-(3, 'Jane', 'Doe', 'jane.doe@gmail.com', '3333333334', '4523 Nowhere', 'scrypt:32768:8:1$VXSxnqbrWIqHgYl5$fa7b815c08db7c1b3c37cdeda1799303797f9eb895a8b416609028660000b133f97e435d5deafa54fc8a61117133e2c36c6d23c716d35292b878f5f1a21b2525', '2025-04-27 23:18:19');
 
 --
 -- Indexes for dumped tables
